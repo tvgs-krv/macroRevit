@@ -1,0 +1,83 @@
+using System;
+using Autodesk.Revit.UI;
+using Autodesk.Revit.DB;
+using Autodesk.Revit.UI.Selection;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace CREARESHEETS
+{
+	[Autodesk.Revit.Attributes.Transaction(Autodesk.Revit.Attributes.TransactionMode.Manual)]
+	[Autodesk.Revit.DB.Macros.AddInId("E412E516-22B4-440E-B207-642907AE06C7")]
+	public partial class ThisApplication
+	{
+		private void Module_Startup(object sender, EventArgs e)
+		{
+
+		}
+
+		private void Module_Shutdown(object sender, EventArgs e)
+		{
+
+		}
+
+		#region Revit Macros generated code
+		private void InternalStartup()
+		{
+			this.Startup += new System.EventHandler(Module_Startup);
+			this.Shutdown += new System.EventHandler(Module_Shutdown);
+		}
+		#endregion
+		public void CREATE()
+		{
+			string SHEETNAME = "ИМЯ ЛИСТА"; //ИМЯ ЛИСТА
+			int SHEETNUMBER = 1; //НАЧАЛЬНЫЙ НОМЕР ЛИСТА
+			UIDocument uidoc = this.ActiveUIDocument;
+			Document doc = uidoc.Document;
+			FilteredElementCollector titleblock = new FilteredElementCollector(doc)
+				.OfClass(typeof(FamilySymbol))
+				.OfCategory(BuiltInCategory.OST_TitleBlocks);
+			FamilySymbol titleBlock = titleblock.FirstElement() as FamilySymbol;
+			ICollection<ElementId> selectViews = uidoc.Selection.GetElementIds(); // Выделение видов
+
+			InteractionWithSheetsClass iseet = new InteractionWithSheetsClass(doc);
+			using (Transaction tr = new Transaction(doc))
+			{
+				tr.Start("SSS");
+				
+				foreach (ElementId sv in selectViews)
+				{
+					var sheetCr = iseet.SheetCreator(SHEETNUMBER.ToString(), SHEETNAME, titleBlock);
+					XYZ xyz = new XYZ(1, 1, 0);
+					Viewport.Create(doc, sheetCr.Id, sv, xyz);
+					SHEETNUMBER++;
+				}
+				tr.Commit();
+				
+			}
+
+		}
+		
+	}
+	
+		public class InteractionWithSheetsClass
+	{
+		Document doc = null;
+		public InteractionWithSheetsClass(Document document)
+		{
+			this.doc = document;
+		}
+		
+		public ViewSheet SheetCreator (string sheetNum, string sheetName, FamilySymbol titleBlock)
+		{
+			ViewSheet createSheet = ViewSheet.Create(doc, titleBlock.Id);
+			createSheet.SheetNumber = sheetNum;
+			createSheet.Name = sheetName;
+			return createSheet;
+		}
+		
+		
+	}
+
+	
+}
