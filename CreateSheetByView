@@ -1,3 +1,11 @@
+/*
+ * Created by SharpDevelop.
+ * User: KovalenkoR
+ * Date: 27.05.2019
+ * Time: 15:41
+ * 
+ * To change this template use Tools | Options | Coding | Edit Standard Headers.
+ */
 using System;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.DB;
@@ -30,25 +38,27 @@ namespace CREARESHEETS
 		#endregion
 		public void CREATE()
 		{
-			string SHEETNAME = "ИМЯ ЛИСТА"; //ИМЯ ЛИСТА
-			int SHEETNUMBER = 1; //НАЧАЛЬНЫЙ НОМЕР ЛИСТА
+			string SHEETNAME = "ИМЯ ЛИСТА"; //ИМЯ ЛИСТА (Sheet name)
+			int SHEETNUMBER = 1; //НАЧАЛЬНЫЙ НОМЕР ЛИСТА (Starting number)
+			XYZ xyz = new XYZ(1, 1, 0); // Координаты расположения вида на листе(Coordinate for place view on the sheet)
+			
 			UIDocument uidoc = this.ActiveUIDocument;
 			Document doc = uidoc.Document;
 			FilteredElementCollector titleblock = new FilteredElementCollector(doc)
 				.OfClass(typeof(FamilySymbol))
 				.OfCategory(BuiltInCategory.OST_TitleBlocks);
 			FamilySymbol titleBlock = titleblock.FirstElement() as FamilySymbol;
-			ICollection<ElementId> selectViews = uidoc.Selection.GetElementIds(); // Выделение видов
-
-			InteractionWithSheetsClass iseet = new InteractionWithSheetsClass(doc);
+			ICollection<ElementId> selectViews = uidoc.Selection.GetElementIds(); // Выделение видов (Select views)
+			
 			using (Transaction tr = new Transaction(doc))
 			{
-				tr.Start("SSS");
+				tr.Start("Create Sheets");
 				
 				foreach (ElementId sv in selectViews)
 				{
-					var sheetCr = iseet.SheetCreator(SHEETNUMBER.ToString(), SHEETNAME, titleBlock);
-					XYZ xyz = new XYZ(1, 1, 0);
+					ViewSheet createSheet = ViewSheet.Create(doc, titleBlock.Id);
+					createSheet.SheetNumber = SHEETNUMBER.ToString();
+					createSheet.Name = SHEETNAME;
 					Viewport.Create(doc, sheetCr.Id, sv, xyz);
 					SHEETNUMBER++;
 				}
@@ -57,27 +67,7 @@ namespace CREARESHEETS
 			}
 
 		}
-		
-	}
 	
-		public class InteractionWithSheetsClass
-	{
-		Document doc = null;
-		public InteractionWithSheetsClass(Document document)
-		{
-			this.doc = document;
-		}
-		
-		public ViewSheet SheetCreator (string sheetNum, string sheetName, FamilySymbol titleBlock)
-		{
-			ViewSheet createSheet = ViewSheet.Create(doc, titleBlock.Id);
-			createSheet.SheetNumber = sheetNum;
-			createSheet.Name = sheetName;
-			return createSheet;
-		}
-		
-		
 	}
-
 	
 }
