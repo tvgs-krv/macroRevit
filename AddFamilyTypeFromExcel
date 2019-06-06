@@ -34,7 +34,7 @@ namespace Families
 		
 		public void AddTypeTofamilyFromExcel()
 		{
-			string excelPath = @"C:\Users\kovalenkor\Desktop\AMUR\CreateType.xlsx";
+			string excelPath = @"C:....\CreateType.xlsx"; // УКАЗАТЬ ПУТЬ К ФАЙЛУ
 			UIDocument uidoc = this.ActiveUIDocument;
 			Document doc = uidoc.Document;
 			FamilyManager fm = doc.FamilyManager;
