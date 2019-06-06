@@ -1,0 +1,112 @@
+using System;
+using Autodesk.Revit.UI;
+using Autodesk.Revit.DB;
+using Autodesk.Revit.UI.Selection;
+using System.Collections.Generic;
+using System.Linq;
+using Excel = Microsoft.Office.Interop.Excel;
+
+
+namespace Families
+{
+	[Autodesk.Revit.Attributes.Transaction(Autodesk.Revit.Attributes.TransactionMode.Manual)]
+	[Autodesk.Revit.DB.Macros.AddInId("E11B9E44-95E3-4461-8270-0D61DCBAA221")]
+	public partial class ThisApplication
+	{
+		private void Module_Startup(object sender, EventArgs e)
+		{
+
+		}
+
+		private void Module_Shutdown(object sender, EventArgs e)
+		{
+
+		}
+
+		#region Revit Macros generated code
+		private void InternalStartup()
+		{
+			this.Startup += new System.EventHandler(Module_Startup);
+			this.Shutdown += new System.EventHandler(Module_Shutdown);
+		}
+		#endregion
+		
+		
+		public void AddTypeTofamilyFromExcel()
+		{
+			string excelPath = @"C:\Users\kovalenkor\Desktop\AMUR\CreateType.xlsx";
+			UIDocument uidoc = this.ActiveUIDocument;
+			Document doc = uidoc.Document;
+			FamilyManager fm = doc.FamilyManager;
+			using (Transaction tr = new Transaction(doc))
+			{
+				tr.Start("Edit Family");
+				foreach (var e in GetData(excelPath))
+				{
+					string typeName = e.Key;
+					FamilyType newFamtype = fm.NewType(typeName);
+					foreach (var el in e.Value)
+					{
+						string paramName = el.Key;
+						double setValue = el.Value;
+						FamilyParameter fp = fm.get_Parameter(paramName);
+						if(fp!=null)
+							fm.Set(fp, setValue/304.8);
+					}
+				}
+				tr.Commit();
+			}
+		}
+		
+		
+		private Dictionary<string, Dictionary<string, double>> GetData(string excelPath)
+		{
+			#region Access to Excel
+			Excel.Application app = new Excel.Application {Visible = true};
+			Excel.Workbook excelappworkbook = app.Workbooks.Open(excelPath); // Open exist workbook
+			Excel.Sheets excelsheets=excelappworkbook.Worksheets; //Get array sheets list
+			Excel.Worksheet excelworksheet=(Excel.Worksheet)excelsheets.get_Item(1); //get sheet
+			#endregion
+			Dictionary<string, Dictionary<string, double>> listDict = new Dictionary<string, Dictionary<string, double>>();
+			
+			int lastRow = excelworksheet.Cells.SpecialCells(Excel.XlCellType.xlCellTypeLastCell,
+			                                                (System.Object)Excel.XlSpecialCellsValue.xlTextValues).Row; // Получить номер последней ячейки столбца
+			
+			int lastCol = excelworksheet.Cells.SpecialCells(Excel.XlCellType.xlCellTypeLastCell,
+			                                                (System.Object)Excel.XlSpecialCellsValue.xlTextValues).Column; // Получить номер последнего столбца ячейки
+			
+			
+			
+			for (int i = 2; i < lastCol + 1; i++)
+			{
+				Dictionary<string, double> d1 = new Dictionary<string, double>(); //Параметр : значение
+
+				for (int j = 2; j < lastRow+1; j++)
+				{
+					try
+					{
+						Excel.Range cell1 = (Excel.Range)excelworksheet.Cells[j, i];
+						string f1 = cell1.Value.ToString();
+						
+						Excel.Range title = (Excel.Range)excelworksheet.Cells[1, i];
+						string title1 = title.Value.ToString();
+						
+						Excel.Range param = (Excel.Range)excelworksheet.Cells[j, 1];
+						string param1 = param.Value.ToString();
+						
+						d1.Add(param1, Convert.ToDouble(f1));
+						listDict.Add(title1, d1);
+					}
+					catch{}
+				}
+			}
+			app.Quit();
+			
+			return listDict;
+			
+
+		}
+		
+		
+	}
+}
