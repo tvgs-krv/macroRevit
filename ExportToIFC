@@ -1,0 +1,95 @@
+using System;
+using Autodesk.Revit.UI;
+using Autodesk.Revit.DB;
+using Autodesk.Revit.UI.Selection;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace MacroForRevit
+{
+	[Autodesk.Revit.Attributes.Transaction(Autodesk.Revit.Attributes.TransactionMode.Manual)]
+	[Autodesk.Revit.DB.Macros.AddInId("1AF1E0F9-C5FA-491F-82F9-8CD65A4F7562")]
+	public partial class ThisApplication
+	{
+		private void Module_Startup(object sender, EventArgs e)
+		{
+
+		}
+
+		private void Module_Shutdown(object sender, EventArgs e)
+		{
+
+		}
+
+		#region Revit Macros generated code
+		private void InternalStartup()
+		{
+			this.Startup += new System.EventHandler(Module_Startup);
+			this.Shutdown += new System.EventHandler(Module_Shutdown);
+		}
+		#endregion
+		/// <summary>
+		/// Экспортирует в IFC те элементы модели, которые видны на активном 3д виде. С теми настройками, которые находятся в txt файле
+		/// </summary>
+		public void ExportToIFCInCurrentDirectory()
+		{
+			string userPSetsPath = @"F:\02_Current Projects\05_B&P\44_Amur\02 Design\02 SHARED\01 BIM\04_BIM RESOURCES\06_IFC Export Procedure\3971_rev000_(CONCRETE-MAPPING-IFC-EXPORT).txt";
+
+			UIDocument uidoc = this.ActiveUIDocument;
+			Document document = uidoc.Document;
+			string activeFileName = uidoc.Document.PathName;
+			string folder = System.IO.Path.GetDirectoryName(activeFileName);
+			string fileName = null;
+			if(document.Title.Contains(".rvt"))
+				fileName = document.Title.Replace(".rvt", "");
+			else
+				fileName = document.Title.Replace(".rfa", "");
+			
+			using (Transaction tr = new Transaction(document))
+			{
+				tr.Start("Export to IFC");
+				IFCExportOptions opt = new IFCExportOptions();
+				opt.FileVersion = IFCVersion.IFC2x3;
+				opt.FilterViewId = document.ActiveView.Id;
+				opt.AddOption("VisibleElementsOfCurrentView", "true");
+				opt.AddOption("ExportIFCCommonPropertySets", "true");
+				opt.AddOption("ExportUserDefinedPsets", "true");
+				opt.AddOption("ExportUserDefinedPsetsFileName", userPSetsPath);
+				opt.AddOption("IncludeSiteElevation", "true");
+				opt.AddOption("TessellationLevelOfDetail", "0");
+				opt.AddOption("ActiveViewId", document.ActiveView.Id.ToString());
+
+				opt.AddOption("IFCFileType", "0");
+				opt.AddOption("SpaceBoundaries", "0");
+				opt.AddOption("SitePlacement", "0");
+				opt.AddOption("ActivePhaseId", "0");
+				opt.AddOption("ExportBaseQuantities", "false");
+				opt.AddOption("SplitWallsAndColumns", "false");
+				opt.AddOption("ExportInternalRevitPropertySets", "false");
+				opt.AddOption("Export2DElements", "false");
+				opt.AddOption("Use2DRoomBoundaryForVolume", "false");
+				opt.AddOption("UseFamilyAndTypeNameForReference", "false");
+				opt.AddOption("ExportPartsAsBuildingElements", "false");
+				opt.AddOption("ExportSolidModelRep", "false");
+				opt.AddOption("ExportSchedulesAsPsets", "false");
+				opt.AddOption("ExportBoundingBox", "false");
+				opt.AddOption("UseActiveViewGeometry", "false");
+				opt.AddOption("ExportSpecificSchedules", "false");
+				opt.AddOption("UseOnlyTriangulation", "false");
+				opt.AddOption("StoreIFCGUID", "false");
+				opt.AddOption("ExportRoomsInView", "false");
+				opt.AddOption("ExportLinkedFiles", "false");
+				opt.AddOption("ActiveViewId", "0");
+				opt.AddOption("ExcludeFilter", "");
+				opt.AddOption("COBieCompanyInfo", "");
+				opt.AddOption("COBieProjectInfo", "");
+				opt.AddOption("IsBuiltIn", "false");
+				opt.AddOption("IsInSession", "false");
+				document.Export(folder, fileName, opt);
+				tr.Commit();
+			}
+
+			
+		}
+	}
+}
